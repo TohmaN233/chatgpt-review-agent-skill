@@ -1,0 +1,4 @@
+interface:
+  display_name: "ChatGPT Review Agent"
+  short_description: "Run ChatGPT packet reviews or High/extra-high MCP reviews"
+  default_prompt: "Use $chatgpt-review-agent. For Pro or any tool-less GPT reviewer, use packet review. For High/extra-high with a selected connector, smoke test a real MCP tool call first. Do not ask me to copy/paste unless browser automation is unavailable. Save the newest review markdown locally."

@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+.DS_Store
+.chatgpt-review/
+start-review-mcp.cmd
+start-review-mcp.sh
+.review-mcp-token
+review-mcp.*.log
