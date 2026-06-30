@@ -1,11 +1,11 @@
 ---
 name: chatgpt-review-agent
-description: "Use ChatGPT in the Codex side browser/tab as a review agent for local code: GPT Pro packet review, High/extra-high MCP connector review, no-MCP packet workflows, upload/capture of ChatGPT answers, and saving review markdown back into the repo."
+description: "Use ChatGPT in the Codex side browser/tab as a review agent for local artifacts: code, academic papers, writing drafts, GPT Pro packet review, High/extra-high MCP connector review, no-MCP packet workflows, upload/capture of ChatGPT answers, and saving review markdown locally."
 ---
 
 # ChatGPT Review Agent
 
-Use this when the user wants ChatGPT High/extra-high or Pro to review local code from Codex.
+Use this when the user wants ChatGPT High/extra-high or Pro to review local artifacts from Codex: code, papers, writing drafts, logs, or bundled evidence.
 
 The ChatGPT Codex side browser/tab must be open for automation. Do not ask the user to copy/paste unless browser control is unavailable.
 
@@ -20,7 +20,7 @@ If the user says "Pro review", use packet path. If a non-Pro model cannot call t
 
 If MCP is not already working and the user wants connector review, read `references/setup.md`. It explains the generic MCP connector shape and a stable HTTPS tunnel option.
 
-If browser upload/capture details are needed, read `references/browser-workflows.md`.
+For packet upload or browser capture, read `references/browser-workflows.md` first. It contains the required `.zip` upload workflow and the preferred review-capture method.
 
 ## Packet Builder
 
@@ -36,9 +36,11 @@ The script only includes files under `--repo`, adds line numbers, truncates over
 
 Prefer `.zip` packets for multi-file reviews. ChatGPT can read files inside an uploaded zip attachment, so the packet zip may include both `review-packet.md` and supporting source files.
 
-## Review Prompt
+## Review Prompt Examples
 
-Ask ChatGPT for findings first:
+Use a prompt format that matches the artifact. Ask for findings first.
+
+### Code Review
 
 ```text
 You are acting as an external code reviewer.
@@ -51,20 +53,46 @@ Output:
 4. Smallest recommended next check
 ```
 
+### Academic Paper Review
+
+```text
+You are acting as an external academic reviewer.
+Review only the attached paper / provided evidence.
+
+Output:
+1. Blocking scientific or methodological issues
+2. Clarity, structure, and presentation risks
+3. Exact sections, figures, equations, or claims to inspect
+4. Smallest recommended revision or validation check
+```
+
+### Writing Review
+
+```text
+You are acting as an external writing editor.
+Review only the attached draft / provided evidence.
+
+Output:
+1. Blocking issues for the intended audience or purpose
+2. Non-blocking clarity, tone, and structure risks
+3. Exact passages Codex should revise or inspect
+4. Smallest recommended next edit
+```
+
 ## Packet Path
 
 1. Codex builds a compact packet locally with the script or by hand.
 2. Switch ChatGPT to Pro, or any desired tool-less reviewer.
-3. Send/upload the packet. Prefer the generated `.zip`; ChatGPT can inspect the files inside it.
+3. Send/upload the packet. Prefer the generated `.zip`; ChatGPT can inspect the files inside it. Read `references/browser-workflows.md` before uploading; it is the required tutorial for attaching the `.zip` in the ChatGPT browser.
 4. Wait until generation is complete.
-5. Capture only the newest assistant answer after the packet prompt.
-6. Save it to the requested handoff path, usually:
+5. Capture only the newest assistant answer after the latest user packet prompt. Prefer the ChatGPT copy button on that newest assistant response and then read the clipboard text. If using DOM extraction, select the last assistant message after the latest user packet prompt.
+6. Save the captured review as a local Markdown file at the requested handoff path, usually:
 
 ```text
 .chatgpt-review/review.md
 ```
 
-Before declaring success, verify the saved text contains the requested review sections and is not an older turn, a user prompt, or a short interim fragment.
+Before declaring success, verify the local `.md` contains the requested review sections and is not an older turn, a user prompt, or a short interim fragment.
 
 ## MCP Connector Path
 
