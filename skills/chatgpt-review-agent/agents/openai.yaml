@@ -1,4 +1,4 @@
 interface:
   display_name: "ChatGPT Review Agent"
   short_description: "Run ChatGPT packet reviews for code, papers, or drafts"
-  default_prompt: "Use $chatgpt-review-agent. Pick the review prompt format that matches the artifact: code, academic paper, or writing draft. For Pro or any tool-less GPT reviewer, use packet review. For High/extra-high with a selected connector, smoke test a real MCP tool call first. Save the newest review markdown locally."
+  default_prompt: "Use -review-agent. Default to packet review: build a zip, upload it, capture the newest reply, and save review markdown locally. Only try MCP if the user explicitly asks and a real smoke test already works in the current ChatGPT conversation."

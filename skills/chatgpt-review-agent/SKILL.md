@@ -1,6 +1,6 @@
 ---
 name: chatgpt-review-agent
-description: "Use ChatGPT in the Codex side browser/tab as a review agent for local artifacts: code, academic papers, writing drafts, GPT Pro packet review, High/extra-high MCP connector review, no-MCP packet workflows, upload/capture of ChatGPT answers, and saving review markdown locally."
+description: "Use ChatGPT in the Codex side browser/tab as a review agent for local artifacts. Default is packet review. Use MCP only if the user explicitly asks and a smoke test works. Covers code, papers, drafts, Pro and High/extra-high reviewers."
 ---
 
 # ChatGPT Review Agent
@@ -11,20 +11,20 @@ The ChatGPT Codex side browser/tab must be open for automation. Do not ask the u
 
 ## Choose The Path
 
-- **Packet path:** Default for Pro, and for any model/session where MCP is unavailable. Codex builds a packet locally, sends/uploads it to the selected ChatGPT reviewer, captures the reply, and writes the handoff file.
-- **MCP connector path:** Use only when the target model can call a ChatGPT App/Connector backed by an MCP server. Usually this is `High`/`extra-high`, not Pro. Smoke test before relying on it.
+**Packet path is the default.**
 
-If the user says "Pro review", use packet path. If a non-Pro model cannot call tools, do not keep trying MCP. Use packet path.
+- **Packet path (default):** Build a packet, upload it, capture the reply, save the markdown.
+- **MCP connector path:** Only if the user explicitly asks, and only after one `list_allowed_roots` smoke test succeeds.
 
 ## Setup Reference
 
-If MCP is not already working and the user wants connector review, read `references/setup.md`. It explains the generic MCP connector shape and a stable HTTPS tunnel option.
+If the user explicitly wants connector review and MCP is not already working, read `references/setup.md`. It explains the generic MCP connector shape and a stable HTTPS tunnel option.
 
 For packet upload or browser capture, read `references/browser-workflows.md` first. It contains the required `.zip` upload workflow and the preferred review-capture method.
 
 ## Packet Builder
 
-Prefer the bundled script when preparing evidence for Pro or any tool-less GPT review:
+Prefer the bundled script when preparing evidence for Pro or any GPT review:
 
 ```bash
 python <skill-dir>/scripts/build_review_packet.py --repo . --out .chatgpt-review/review-packet.md --zip .chatgpt-review/review-packet.zip --goal "Review this change for bugs and missing tests." --file <relative/file.py> --file tests/test_file.py
@@ -82,7 +82,7 @@ Output:
 ## Packet Path
 
 1. Codex builds a compact packet locally with the script or by hand.
-2. Switch ChatGPT to Pro, or any desired tool-less reviewer.
+2. Switch ChatGPT to the requested reviewer. Pro is fine. High/extra-high is also fine for packet review.
 3. Send/upload the packet. Prefer the generated `.zip`; ChatGPT can inspect the files inside it. Read `references/browser-workflows.md` before uploading; it is the required tutorial for attaching the `.zip` in the ChatGPT browser.
 4. Wait until generation is complete.
 5. Capture only the newest assistant answer after the latest user packet prompt. Prefer the ChatGPT copy button on that newest assistant response and then read the clipboard text. If using DOM extraction, select the last assistant message after the latest user packet prompt.
@@ -99,9 +99,9 @@ Before declaring success, verify the local `.md` contains the requested review s
 1. In ChatGPT, click the composer `+` button, usually at the lower-left of the input box.
 2. Select the user's MCP-backed App/Connector. Its name often contains `connect`, but the exact name is user-defined.
 3. Select a model that can call connector tools, usually `High`/`extra-high` rather than Pro.
-4. Smoke test with `list_allowed_roots` before review.
-5. Ask for exact reads or a review over narrow paths only after the smoke test proves a real tool call happened.
-6. Verify a real MCP call, not just a plausible answer: the ChatGPT UI must show a tool call, or the MCP server log must show a matching `/mcp` request. If neither is visible, treat MCP as unverified and use packet path.
+4. Smoke test with `list_allowed_roots`. One attempt is enough.
+5. After a real tool call, review only narrow paths.
+6. Verify the ChatGPT UI showed a tool call, or the MCP server log shows a matching `/mcp` request.
 7. Capture the newest assistant answer and save it locally.
 
 Prefer exact file reads over broad search. If listing a tree is needed, keep it narrow and split by directory.
@@ -110,7 +110,6 @@ The bundled tiny MCP server exposes `write_review` under `.chatgpt-review/` and 
 
 ## Failure Checks
 
-- Pro says it has no tool or connector access: expected; use packet path.
-- A tool answer appears but no audit entry exists: treat as unverified.
+- MCP is blocked, forbidden, or unverified: report the exact error and use packet.
 - ChatGPT is still generating: wait; do not capture interim fragments.
 - The saved review is tiny or stale: recapture the newest assistant turn.

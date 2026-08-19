@@ -1,6 +1,8 @@
 # ChatGPT Review Agent Setup
 
-Use this only when the user wants ChatGPT to read through an MCP connector. In the tested ChatGPT setup, Pro cannot call MCP connector tools; use packet review for Pro.
+Use this only when the user explicitly wants ChatGPT to read through an MCP connector. Packet review is the default and does not need this file.
+
+MCP review is optional and unstable. ChatGPT can block even read-only tool calls before they reach the local server (`FORBIDDEN: This conversation does not support developer MCPs`, or OpenAI safety checks). After one failed smoke test, stop and use packet review.
 
 ## The Generic Shape
 
@@ -143,4 +145,5 @@ If this fails on Pro but works on `High`/`extra-high`, that is a ChatGPT surface
 - Prefer exact `read_text` over broad search.
 - Keep `tree` small, usually `max_entries <= 30`.
 - Verify real tool calls with the MCP server audit log when available.
-- If MCP session state gets weird, stop retry loops; restart the local MCP server and try one smoke call.
+- If MCP session state gets weird, stop retry loops. One more smoke call is enough; then use packet.
+- If ChatGPT returns a conversation FORBIDDEN or a safety-check block and the local server has no matching `/mcp` request, do not debug the local server. Use packet.

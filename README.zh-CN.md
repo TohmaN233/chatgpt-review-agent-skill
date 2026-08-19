@@ -4,16 +4,21 @@
 
 [English README](README.md)
 
-支持两种模式：
+**默认走 Packet review。** MCP connector review 是可选项，而且不稳定。
 
-- **Packet review：** 不需要 MCP。Codex 把相关代码打包成 zip，发给任意 ChatGPT reviewer 模型，等待回复，再把最新版回复保存成本地 markdown。
-- **MCP connector review：** 让 ChatGPT 通过一个很小的 MCP server 读取本地文件。只有当前 ChatGPT 模型真的能调用 connector tools 时才用。
+- **Packet review（默认）：** 不需要 MCP。Codex 把相关代码打包成 zip，发给任意 ChatGPT reviewer 模型，等待回复，再把最新版回复保存成本地 markdown。
+- **MCP connector review（可选、不稳定）：** 让 ChatGPT 通过一个很小的 MCP server 读取本地文件。ChatGPT 的安全检查 / 会话策略可能在请求到达本地 server 之前就把 tool call 拦掉。同一个只读 connector、同一个 High/extra-high 模型，这个对话能调、下一个对话就不能。
 
-当前实测结论是：**Pro 不能调用 MCP connector tools**。所以 Pro 走 packet review；High/extra-high 先做 smoke test，通过后再走 MCP。
+不要把 MCP 当成常规路径。Smoke test 失败一次，或无法确认真实 tool call，就改走 packet。
+
+当前实测结论：
+
+- **Pro 不能调用 MCP connector tools。** 走 packet。
+- **High/extra-high** 有时能调 MCP，但不稳定。常见错误是 `FORBIDDEN: This conversation does not support developer MCPs`，或者 “This tool call was blocked by OpenAI's safety checks”。本地 server 往往根本收不到请求。
 
 ## Before Proceeding
 
-不用配置 MCP 也能用这个 skill。
+不用配置 MCP 也能用这个 skill。默认就用 packet review。
 
 如果你只是想让 GPT 当审阅 agent 用，或者暂时不想折腾 connector：
 
@@ -23,7 +28,7 @@
 4. ChatGPT 回复审阅意见。
 5. Codex 抓取最新回复并保存到本地 markdown。
 
-这已经足够完成大多数外部 GPT 审阅。MCP 是进阶模式：让 ChatGPT 自己通过 connector 读取本地文件。
+这是默认路径，也足够完成大多数外部 GPT 审阅。MCP 只是额外选项；ChatGPT 侧策略经常把它拦掉，所以除非你明确要 connector 读文件、并且 smoke test 已经通过，否则不要去配。
 
 ## 安装 Skill
 
@@ -43,7 +48,7 @@ Use $chatgpt-review-agent to ask ChatGPT Pro to review this change and save the 
 
 ## Packet Review
 
-适合任意 GPT reviewer 模型，尤其是 MCP 不存在、不可用、不稳定、不值得配置的情况。
+这是默认路径。适合任意 GPT reviewer 模型，包括 MCP 已经配好、但 ChatGPT 实际调不了工具的情况。
 
 `<skill-dir>`、`<repo-root>`、`<relative/file.py>` 都是占位符。Codex 应该从当前 workspace 和 skill source 位置自己推断真实路径。
 
@@ -72,7 +77,7 @@ zip 里包含 `review-packet.md` 和支持文件。ChatGPT 可以读取上传 zi
 
 ## MCP Connector Review
 
-只有当你希望 ChatGPT 通过 connector 读取本地文件时才用。
+只有你明确要求 ChatGPT 通过 connector 读本地文件，并且当前对话里 smoke test 已经真实通过时才用。如果 smoke test 被拦，立刻改走 packet，不要反复重试 MCP。
 
 流程：
 
@@ -372,9 +377,17 @@ npm test
 
 这是一些 ChatGPT surface 里的预期现象。使用 packet review。
 
+**FORBIDDEN: This conversation does not support developer MCPs**
+
+这是 ChatGPT 会话/账号策略，不是本地 MCP 坏了。改成只读工具也过不了。这个对话里直接改走 packet。
+
+**This tool call was blocked by OpenAI's safety checks**
+
+请求通常根本到不了本地 MCP server。这是 OpenAI 发出去之前的拦截，而且会时好时坏。见 [这篇社区帖](https://community.openai.com/t/chatgpt-app-mcp-tool-calls-blocked-by-openai-safety-checks-before-reaching-mcp-server/1386059)。这时不要继续排查本地 server，改走 packet。
+
 **Tool call appears fake**
 
-除非 ChatGPT UI 显示 tool call，或者 MCP server log 有匹配的 `/mcp` 请求，否则当作未验证。
+除非 ChatGPT UI 显示 tool call，或者 MCP server log 有匹配的 `/mcp` 请求，否则当作未验证，并改走 packet。
 
 ## 文件
 

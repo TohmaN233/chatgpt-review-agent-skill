@@ -4,16 +4,21 @@ Use ChatGPT as an external code reviewer from Codex.
 
 [中文说明](README.zh-CN.md)
 
-Two modes are supported:
+**Packet review is the default.** MCP connector review is optional and unstable.
 
-- **Packet review:** works without MCP. Codex packages code, sends/uploads it to any ChatGPT reviewer model, then captures the reply back to local markdown.
-- **MCP connector review:** lets ChatGPT read selected local files through a tiny MCP server. Use this when ChatGPT's selected model can call connector tools.
+- **Packet review (default):** works without MCP. Codex packages code, sends/uploads it to any ChatGPT reviewer model, then captures the reply back to local markdown.
+- **MCP connector review (optional, unstable):** lets ChatGPT read selected local files through a tiny MCP server. ChatGPT safety / conversation policy can block even read-only tool calls before they reach that server. The same High/extra-high model and the same read-only connector can work in one chat and fail in another.
 
-In current tested ChatGPT behavior, **Pro cannot call MCP connector tools**. Use packet review for Pro. Use **High/extra-high** for MCP connector review after a smoke test.
+Do not treat MCP as the normal path. After one failed or unverified smoke test, use packet.
+
+In current ChatGPT behavior:
+
+- **Pro cannot call MCP connector tools.** Use packet.
+- **High/extra-high** can sometimes call MCP, but this is not reliable. OpenAI may return `FORBIDDEN: This conversation does not support developer MCPs`, or block the call with safety checks before the local server sees a request.
 
 ## Before Proceeding
 
-You do not need MCP to use this skill.
+You do not need MCP to use this skill. Start with packet review.
 
 If you only want GPT as a review agent, or do not want connector setup:
 
@@ -23,7 +28,7 @@ If you only want GPT as a review agent, or do not want connector setup:
 4. ChatGPT replies.
 5. Codex captures the newest reply and saves it locally.
 
-This is usually enough for external GPT review. MCP is only for the stronger workflow where ChatGPT itself reads local files through a connector.
+This is the default and is usually enough for external GPT review. MCP is an optional extra path. It is often blocked by ChatGPT-side policy, so do not set it up unless you specifically want connector reads and a smoke test already works.
 
 ## Install The Skill
 
@@ -43,7 +48,7 @@ Use $chatgpt-review-agent to ask ChatGPT Pro to review this change and save the 
 
 ## Packet Review
 
-Use this for any GPT reviewer model when MCP is missing, unavailable, flaky, or not worth the setup.
+This is the default path. Use it for any GPT reviewer model, including when MCP exists but ChatGPT will not actually call tools.
 
 Paths such as `<skill-dir>`, `<repo-root>`, and `<relative/file.py>` are placeholders. A coding agent should resolve the real paths from its current workspace and the skill source location.
 
@@ -72,7 +77,7 @@ Then Codex should:
 
 ## MCP Connector Review
 
-Use this only when you want ChatGPT to read local files through a connector.
+Use this only when you explicitly want ChatGPT to read local files through a connector, and only after a real smoke test works in the current ChatGPT conversation. If the smoke test is blocked, stop and use packet. Do not keep retrying MCP.
 
 The flow is:
 
@@ -364,9 +369,17 @@ npm test
 
 Expected in some ChatGPT surfaces. Use packet review.
 
+**FORBIDDEN: This conversation does not support developer MCPs**
+
+This is ChatGPT conversation/account policy, not a local MCP bug. Read-only tools do not fix it. Use packet review in that conversation.
+
+**This tool call was blocked by OpenAI's safety checks**
+
+The request usually never reaches the local MCP server. This is an OpenAI pre-dispatch block and can come and go. See [this community thread](https://community.openai.com/t/chatgpt-app-mcp-tool-calls-blocked-by-openai-safety-checks-before-reaching-mcp-server/1386059). Use packet review instead of debugging the local server.
+
 **Tool call appears fake**
 
-Treat it as unverified unless the ChatGPT UI shows a tool call or the MCP server log shows a matching `/mcp` request.
+Treat it as unverified unless the ChatGPT UI shows a tool call or the MCP server log shows a matching `/mcp` request. Then use packet review.
 
 ## Files
 
