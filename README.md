@@ -9,7 +9,7 @@ Use ChatGPT as an external code reviewer from Codex.
 - **Packet review (default):** works without MCP. Codex packages code, sends/uploads it to any ChatGPT reviewer model, then captures the reply back to local markdown.
 - **MCP connector review:** lets ChatGPT read selected local files through a tiny MCP server. Personal connectors require **Apps → Advanced settings → Developer mode**. Without it, ChatGPT returns `FORBIDDEN: This conversation does not support developer MCPs` even if the local server is healthy.
 
-For MCP tool calls, use High/extra-high. Pro is for packet review.
+MCP is often blocked by OpenAI safety checks even on ordinary models. Run one smoke test of `list_allowed_roots`; if it does not return real roots, fall back to packet review immediately. Model choice does not fix this, so do not treat High/extra-high/Pro as a working MCP path.
 
 ## Before Proceeding
 
@@ -27,7 +27,13 @@ This is the default and is usually enough for external GPT review. Set up MCP wh
 
 ## Install The Skill
 
-Copy the skill folder into your Codex skills directory:
+Recommended:
+
+```
+npx skills add TohmaN233/chatgpt-review-agent-skill
+```
+
+Alternative (Codex, manual copy): copy the skill folder into your Codex skills directory:
 
 ```powershell
 Copy-Item -Recurse .\skills\chatgpt-review-agent $env:USERPROFILE\.codex\skills\
@@ -294,7 +300,7 @@ https://repo.example.com/mcp
 8. Refresh/rescan tools if ChatGPT offers that action.
 9. In the ChatGPT composer, click the lower-left `+`.
 10. Select your app, for example `connectcodex`.
-11. Use a model that can call tools, usually High/extra-high.
+11. Select any model, then run the single smoke test below. MCP tool calls are often blocked by OpenAI safety checks even on ordinary models, and no model tier reliably works.
 
 Smoke prompt:
 
@@ -307,7 +313,7 @@ Pass condition:
 - ChatGPT UI shows a real tool call, and
 - the reply returns roots such as `<repo-root>` and `<skills-root>`.
 
-If Pro cannot call tools, use packet review.
+If the smoke test does not show a real tool call with real roots, fall back to packet review immediately. Do not switch models or retry.
 
 If ChatGPT gets stuck looking for tools, reselect the app from the composer `+` menu and retry once.
 
@@ -363,9 +369,9 @@ npm test
 - The public hostname is not routed to the tunnel target.
 - Fix the tunnel Public Hostname service URL: `http://127.0.0.1:8765`.
 
-**Pro cannot call tools**
+**Model cannot call tools**
 
-Expected in some ChatGPT surfaces. Use packet review.
+Expected in most ChatGPT surfaces, on any model tier. Use packet review.
 
 **FORBIDDEN: This conversation does not support developer MCPs**
 
