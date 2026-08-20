@@ -9,6 +9,8 @@ Use this when the user wants ChatGPT High/extra-high or Pro to review local arti
 
 The ChatGPT Codex side browser/tab must be open for automation. Do not ask the user to copy/paste unless browser control is unavailable.
 
+Unless the user asks to close it, call `tab.markDeliverable()` before ending any turn that used the ChatGPT review tab; marks are turn-scoped. Use `tab.markHandoff()` only while waiting for user input.
+
 ## Choose The Path
 
 **Packet path is the default.**
