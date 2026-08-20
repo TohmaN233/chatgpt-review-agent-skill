@@ -8,9 +8,10 @@ MCP review is optional and unstable. ChatGPT can block even read-only tool calls
 
 1. Run a local or remote MCP server that exposes review tools.
 2. Expose it to ChatGPT with HTTPS if ChatGPT cannot reach localhost.
-3. Add it as a ChatGPT App/Connector.
-4. In ChatGPT, click the composer `+` button, usually at the lower-left of the input box, and select the user's connector app. The app name often contains `connect`.
-5. Smoke test one harmless read-only/status tool before review.
+3. In ChatGPT, enable **Developer mode** (**Apps → Advanced settings**). Personal/custom connectors will not call tools without it.
+4. Add it as a ChatGPT App/Connector.
+5. In ChatGPT, click the composer `+` button, usually at the lower-left of the input box, and select the user's connector app. The app name often contains `connect`.
+6. Smoke test one harmless read-only/status tool before review.
 
 If any step fails, use packet review. Packet review needs no MCP.
 
@@ -119,11 +120,12 @@ If Cloudflare shows `1016`, the hostname is routed to a missing tunnel target or
 
 In ChatGPT:
 
-1. Add an MCP connector using `<public-url>/mcp`.
-2. Refresh tools after editing the connector.
-3. In the ChatGPT composer, click the `+` button, usually at the lower-left of the input box.
-4. Select the user's connector app. It often has `connect` in the name, but the exact name is user-defined.
-5. Use `High`/`extra-high` for tool calls if Pro does not expose tools.
+1. Enable **Developer mode** under **Apps → Advanced settings**. Personal connectors need this before tools will run.
+2. Add an MCP connector using `<public-url>/mcp`.
+3. Refresh tools after editing the connector.
+4. In the ChatGPT composer, click the `+` button, usually at the lower-left of the input box.
+5. Select the user's connector app. It often has `connect` in the name, but the exact name is user-defined.
+6. Use `High`/`extra-high` for tool calls if Pro does not expose tools.
 
 If you replace one MCP server with another:
 
@@ -146,4 +148,4 @@ If this fails on Pro but works on `High`/`extra-high`, that is a ChatGPT surface
 - Keep `tree` small, usually `max_entries <= 30`.
 - Verify real tool calls with the MCP server audit log when available.
 - If MCP session state gets weird, stop retry loops. One more smoke call is enough; then use packet.
-- If ChatGPT returns a conversation FORBIDDEN or a safety-check block and the local server has no matching `/mcp` request, do not debug the local server. Use packet.
+- If ChatGPT returns `FORBIDDEN: This conversation does not support developer MCPs`, first confirm Developer mode is on. If it already is, or if a safety-check block never reaches the local server, use packet.

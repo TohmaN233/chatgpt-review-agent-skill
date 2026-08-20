@@ -81,12 +81,13 @@ zip 里包含 `review-packet.md` 和支持文件。ChatGPT 可以读取上传 zi
 
 流程：
 
-1. 启动本地 MCP server。
-2. 用 HTTPS URL 暴露它。
-3. 在 ChatGPT 创建 app/connector。
-4. 在 ChatGPT 输入框左下角 `+` 里选择这个 app。
-5. smoke test `list_allowed_roots`。
-6. 通过后再让 ChatGPT 审阅文件。
+1. 在 ChatGPT 打开 **开发人员模式**（**Apps → Advanced settings → Developer mode**）。个人连接器不打开这个，工具调用会失败。
+2. 启动本地 MCP server。
+3. 用 HTTPS URL 暴露它。
+4. 在 ChatGPT 创建 app/connector。
+5. 在 ChatGPT 输入框左下角 `+` 里选择这个 app。
+6. smoke test `list_allowed_roots`。
+7. 通过后再让 ChatGPT 审阅文件。
 
 ## 一次性引导配置
 
@@ -276,6 +277,8 @@ http://127.0.0.1:8765
 
 ## ChatGPT App / Connector 配置
 
+个人/自定义连接器必须先打开 **开发人员模式**，否则即使本地 MCP 正常，也会出现 `FORBIDDEN: This conversation does not support developer MCPs`。
+
 在 ChatGPT 里：
 
 连接后交互示例：
@@ -379,7 +382,7 @@ npm test
 
 **FORBIDDEN: This conversation does not support developer MCPs**
 
-这是 ChatGPT 会话/账号策略，不是本地 MCP 坏了。改成只读工具也过不了。这个对话里直接改走 packet。
+先检查 ChatGPT **Apps → Advanced settings → Developer mode**。个人连接器需要打开开发人员模式。若已经打开，这才是会话/账号策略，不是本地 MCP 坏了；该对话改走 packet。
 
 **This tool call was blocked by OpenAI's safety checks**
 

@@ -81,12 +81,13 @@ Use this only when you explicitly want ChatGPT to read local files through a con
 
 The flow is:
 
-1. Start the local MCP server.
-2. Expose it through an HTTPS URL.
-3. Create a ChatGPT app/connector.
-4. Select that app in the ChatGPT composer with the `+` button.
-5. Smoke test `list_allowed_roots`.
-6. Only then ask ChatGPT to review files.
+1. In ChatGPT, enable **Developer mode** (**Apps → Advanced settings**). Personal connectors need this.
+2. Start the local MCP server.
+3. Expose it through an HTTPS URL.
+4. Create a ChatGPT app/connector.
+5. Select that app in the ChatGPT composer with the `+` button.
+6. Smoke test `list_allowed_roots`.
+7. Only then ask ChatGPT to review files.
 
 ### One-Time Guided Setup
 
@@ -268,6 +269,8 @@ If Cloudflare shows `1016`, the hostname is not routed to a live tunnel service.
 
 ## ChatGPT App / Connector Setup
 
+Personal/custom connectors will not call tools until **Developer mode** is on.
+
 In ChatGPT:
 
 Connected review example:
@@ -371,7 +374,7 @@ Expected in some ChatGPT surfaces. Use packet review.
 
 **FORBIDDEN: This conversation does not support developer MCPs**
 
-This is ChatGPT conversation/account policy, not a local MCP bug. Read-only tools do not fix it. Use packet review in that conversation.
+First check ChatGPT **Apps → Advanced settings → Developer mode**. Personal connectors need it. If Developer mode is already on, this is conversation/account policy, not a local MCP bug. Use packet in that conversation.
 
 **This tool call was blocked by OpenAI's safety checks**
 

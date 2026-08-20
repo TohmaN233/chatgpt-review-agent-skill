@@ -64,7 +64,8 @@ Do not enable source editing unless I explicitly ask for ChatGPT to edit files.
 After setup, tell me:
 1. which start script was generated
 2. the ChatGPT connector endpoint
-3. that user must refresh/rescan tools
-4. that user must click + in the ChatGPT composer and choose my connector app, often named with "connect"
-5. the smoke prompt: "Use the selected connector. Call list_allowed_roots only."
+3. that ChatGPT **Apps → Advanced settings → Developer mode** must be on; personal connectors cannot call tools without it
+4. that user must refresh/rescan tools
+5. that user must click + in the ChatGPT composer and choose my connector app, often named with "connect"
+6. the smoke prompt: "Use the selected connector. Call list_allowed_roots only."
 ```

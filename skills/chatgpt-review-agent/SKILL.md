@@ -96,13 +96,16 @@ Before declaring success, verify the local `.md` contains the requested review s
 
 ## MCP Connector Path
 
-1. In ChatGPT, click the composer `+` button, usually at the lower-left of the input box.
-2. Select the user's MCP-backed App/Connector. Its name often contains `connect`, but the exact name is user-defined.
-3. Select a model that can call connector tools, usually `High`/`extra-high` rather than Pro.
-4. Smoke test with `list_allowed_roots`. One attempt is enough.
-5. After a real tool call, review only narrow paths.
-6. Verify the ChatGPT UI showed a tool call, or the MCP server log shows a matching `/mcp` request.
-7. Capture the newest assistant answer and save it locally.
+Personal/custom ChatGPT connectors need **Developer mode**. In ChatGPT: **Apps → Advanced settings → Developer mode**. Without it, tool calls fail with `FORBIDDEN: This conversation does not support developer MCPs` even if the local server is healthy.
+
+1. Confirm Developer mode is on.
+2. In ChatGPT, click the composer `+` button, usually at the lower-left of the input box.
+3. Select the user's MCP-backed App/Connector. Its name often contains `connect`, but the exact name is user-defined.
+4. Select a model that can call connector tools, usually `High`/`extra-high` rather than Pro.
+5. Smoke test with `list_allowed_roots`. One attempt is enough.
+6. After a real tool call, review only narrow paths.
+7. Verify the ChatGPT UI showed a tool call, or the MCP server log shows a matching `/mcp` request.
+8. Capture the newest assistant answer and save it locally.
 
 Prefer exact file reads over broad search. If listing a tree is needed, keep it narrow and split by directory.
 
@@ -110,6 +113,6 @@ The bundled tiny MCP server exposes `write_review` under `.chatgpt-review/` and 
 
 ## Failure Checks
 
-- MCP is blocked, forbidden, or unverified: report the exact error and use packet.
+- MCP is blocked, forbidden, or unverified: report the exact error and use packet. If the error is `FORBIDDEN: This conversation does not support developer MCPs`, first check ChatGPT **Apps → Advanced settings → Developer mode**; personal connectors need it.
 - ChatGPT is still generating: wait; do not capture interim fragments.
 - The saved review is tiny or stale: recapture the newest assistant turn.
