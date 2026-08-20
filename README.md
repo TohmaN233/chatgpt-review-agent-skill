@@ -4,17 +4,12 @@ Use ChatGPT as an external code reviewer from Codex.
 
 [中文说明](README.zh-CN.md)
 
-**Packet review is the default.** MCP connector review is optional and unstable.
+**Packet review is the default.** MCP connector review needs ChatGPT **Developer mode**.
 
 - **Packet review (default):** works without MCP. Codex packages code, sends/uploads it to any ChatGPT reviewer model, then captures the reply back to local markdown.
-- **MCP connector review (optional, unstable):** lets ChatGPT read selected local files through a tiny MCP server. ChatGPT safety / conversation policy can block even read-only tool calls before they reach that server. The same High/extra-high model and the same read-only connector can work in one chat and fail in another.
+- **MCP connector review:** lets ChatGPT read selected local files through a tiny MCP server. Personal connectors require **Apps → Advanced settings → Developer mode**. Without it, ChatGPT returns `FORBIDDEN: This conversation does not support developer MCPs` even if the local server is healthy.
 
-Do not treat MCP as the normal path. After one failed or unverified smoke test, use packet.
-
-In current ChatGPT behavior:
-
-- **Pro cannot call MCP connector tools.** Use packet.
-- **High/extra-high** can sometimes call MCP, but this is not reliable. OpenAI may return `FORBIDDEN: This conversation does not support developer MCPs`, or block the call with safety checks before the local server sees a request.
+For MCP tool calls, use High/extra-high. Pro is for packet review.
 
 ## Before Proceeding
 
@@ -28,7 +23,7 @@ If you only want GPT as a review agent, or do not want connector setup:
 4. ChatGPT replies.
 5. Codex captures the newest reply and saves it locally.
 
-This is the default and is usually enough for external GPT review. MCP is an optional extra path. It is often blocked by ChatGPT-side policy, so do not set it up unless you specifically want connector reads and a smoke test already works.
+This is the default and is usually enough for external GPT review. Set up MCP when you want ChatGPT to read local files through a connector; turn on Developer mode first.
 
 ## Install The Skill
 
@@ -378,7 +373,7 @@ First check ChatGPT **Apps → Advanced settings → Developer mode**. Personal 
 
 **This tool call was blocked by OpenAI's safety checks**
 
-The request usually never reaches the local MCP server. This is an OpenAI pre-dispatch block and can come and go. See [this community thread](https://community.openai.com/t/chatgpt-app-mcp-tool-calls-blocked-by-openai-safety-checks-before-reaching-mcp-server/1386059). Use packet review instead of debugging the local server.
+Confirm Developer mode is on and the connector is selected. If the local server still has no matching `/mcp` request, use packet for that turn.
 
 **Tool call appears fake**
 

@@ -1,6 +1,6 @@
 ---
 name: chatgpt-review-agent
-description: "Use ChatGPT in the Codex side browser/tab as a review agent for local artifacts. Default is packet review. Use MCP only if the user explicitly asks and a smoke test works. Covers code, papers, drafts, Pro and High/extra-high reviewers."
+description: "Use ChatGPT in the Codex side browser/tab as a review agent for local artifacts. Default is packet review. MCP connector review needs ChatGPT Developer mode. Covers code, papers, drafts, Pro and High/extra-high reviewers."
 ---
 
 # ChatGPT Review Agent
@@ -14,7 +14,7 @@ The ChatGPT Codex side browser/tab must be open for automation. Do not ask the u
 **Packet path is the default.**
 
 - **Packet path (default):** Build a packet, upload it, capture the reply, save the markdown.
-- **MCP connector path:** Only if the user explicitly asks, and only after one `list_allowed_roots` smoke test succeeds.
+- **MCP connector path:** Use when the user wants connector review. Personal connectors need ChatGPT Developer mode; then smoke test `list_allowed_roots`.
 
 ## Setup Reference
 

@@ -4,17 +4,12 @@
 
 [English README](README.md)
 
-**默认走 Packet review。** MCP connector review 是可选项，而且不稳定。
+**默认走 Packet review。** MCP connector review 需要打开 ChatGPT **开发人员模式**。
 
 - **Packet review（默认）：** 不需要 MCP。Codex 把相关代码打包成 zip，发给任意 ChatGPT reviewer 模型，等待回复，再把最新版回复保存成本地 markdown。
-- **MCP connector review（可选、不稳定）：** 让 ChatGPT 通过一个很小的 MCP server 读取本地文件。ChatGPT 的安全检查 / 会话策略可能在请求到达本地 server 之前就把 tool call 拦掉。同一个只读 connector、同一个 High/extra-high 模型，这个对话能调、下一个对话就不能。
+- **MCP connector review：** 让 ChatGPT 通过一个很小的 MCP server 读取本地文件。个人连接器必须先打开 **Apps → Advanced settings → Developer mode**。没开的话，即使本地 server 正常，也会返回 `FORBIDDEN: This conversation does not support developer MCPs`。
 
-不要把 MCP 当成常规路径。Smoke test 失败一次，或无法确认真实 tool call，就改走 packet。
-
-当前实测结论：
-
-- **Pro 不能调用 MCP connector tools。** 走 packet。
-- **High/extra-high** 有时能调 MCP，但不稳定。常见错误是 `FORBIDDEN: This conversation does not support developer MCPs`，或者 “This tool call was blocked by OpenAI's safety checks”。本地 server 往往根本收不到请求。
+MCP 工具调用用 High/extra-high。Pro 走 packet review。
 
 ## Before Proceeding
 
@@ -28,7 +23,7 @@
 4. ChatGPT 回复审阅意见。
 5. Codex 抓取最新回复并保存到本地 markdown。
 
-这是默认路径，也足够完成大多数外部 GPT 审阅。MCP 只是额外选项；ChatGPT 侧策略经常把它拦掉，所以除非你明确要 connector 读文件、并且 smoke test 已经通过，否则不要去配。
+这是默认路径，也足够完成大多数外部 GPT 审阅。若要用 connector 读本地文件，先打开开发人员模式再配 MCP。
 
 ## 安装 Skill
 
@@ -386,7 +381,7 @@ npm test
 
 **This tool call was blocked by OpenAI's safety checks**
 
-请求通常根本到不了本地 MCP server。这是 OpenAI 发出去之前的拦截，而且会时好时坏。见 [这篇社区帖](https://community.openai.com/t/chatgpt-app-mcp-tool-calls-blocked-by-openai-safety-checks-before-reaching-mcp-server/1386059)。这时不要继续排查本地 server，改走 packet。
+先确认开发人员模式已打开，并且当前对话选中了连接器。若本地 server 仍没有对应 `/mcp` 请求，这一轮改走 packet。
 
 **Tool call appears fake**
 

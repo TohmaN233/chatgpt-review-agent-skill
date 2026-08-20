@@ -2,7 +2,7 @@
 
 Use this only when the user explicitly wants ChatGPT to read through an MCP connector. Packet review is the default and does not need this file.
 
-MCP review is optional and unstable. ChatGPT can block even read-only tool calls before they reach the local server (`FORBIDDEN: This conversation does not support developer MCPs`, or OpenAI safety checks). After one failed smoke test, stop and use packet review.
+Personal ChatGPT connectors need **Developer mode** (**Apps → Advanced settings**). Without it, tool calls fail with `FORBIDDEN: This conversation does not support developer MCPs` even if the local server is healthy.
 
 ## The Generic Shape
 
