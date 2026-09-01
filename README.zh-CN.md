@@ -84,7 +84,7 @@ zip 里包含 `review-packet.md` 和支持文件。ChatGPT 可以读取上传 zi
 
 ## MCP Connector Review
 
-只有你明确要求 ChatGPT 通过 connector 读本地文件，并且当前对话里 smoke test 已经真实通过时才用。如果 smoke test 被拦，立刻改走 packet，不要反复重试 MCP。
+MCP 用来让 ChatGPT 通过 connector 读本地文件。smoke test 不过就走 packet。
 
 流程：
 
@@ -204,20 +204,9 @@ Invoke-RestMethod http://127.0.0.1:8765/health
 
 ## HTTPS URL
 
-**URL 规则：**
+ChatGPT 按 hostname（或 OpenAI `tunnel_id`）记住连接器。主机名保持不变，app 就不用重加。`.review-mcp-token` 重启时留着。
 
-ChatGPT 会把你的连接器绑定到一个特定的 hostname（或 OpenAI `tunnel_id`）。**如果 URL 变了，你必须在 ChatGPT 里删除旧 app 并重新添加。** 使用稳定 URL 可以只添加一次连接器。
-
-- 随机 trycloudflare / 随机 ngrok = 每次都要重新添加 → **仅用于调试**
-- 稳定 hostname = 添加一次，保留 `.review-mcp-token`
-
-删除 `.review-mcp-token` 可能会强制重新认证，但如果 URL 不变，不需要创建新 app。
-
-### 三种稳定路径
-
-根据你的情况，按顺序选择：
-
-#### 1. 自有域名（有域名的话最好）
+### 自有域名
 
 使用 **Cloudflare 命名隧道**或类似服务配合你自己的域名。
 
@@ -276,9 +265,9 @@ curl https://mcp.example.com/mcp
 - 如果 Cloudflare 提示该 host 已有 A、AAAA 或 CNAME 记录，删除冲突 DNS 记录或换一个 subdomain。
 - 如果 Cloudflare 显示 `1016`，说明这个 hostname 没有正确路由到 tunnel。把 tunnel Public Hostname 修正为指向 `http://127.0.0.1:8765`。
 
-#### 2. 没有域名（免费 ngrok static）
+### 没有域名
 
-使用 **ngrok 免费静态分配域名**（`xxx.ngrok-free.app`）。其他项目已经在用这个方法（DevSpace、Pieces、ROS-MCP、ChatGPT Apps 教程）。
+ngrok 会分配固定主机名，例如 `xxx.ngrok-free.app`。
 
 **设置步骤：**
 
@@ -312,9 +301,7 @@ python mcp_server.py \
 https://xxx.ngrok-free.app/mcp
 ```
 
-**重要：** 不要用 `ngrok http 8765` 不带 `--url`（会生成随机 URL）。一定要用 `--url=xxx.ngrok-free.app` 指定你的静态域名。
-
-#### 3. OpenAI Secure MCP Tunnel（可选，2026-05+）
+### OpenAI tunnel
 
 使用 **OpenAI Connection Tunnel** 配合 `tunnel_id`。你的笔记本运行 `github.com/openai/tunnel-client` 出站连接；不需要公网 hostname。
 
@@ -342,21 +329,15 @@ python mcp_server.py \
   --token-file .review-mcp-token
 ```
 
-**注意：** OpenAI tunnel 有 workspace 和 RBAC 限制。不适合提交到公开 plugin store。RepoRelay 等项目在用这个方法。
+本机跑 `github.com/openai/tunnel-client`，用 `tunnel_id`。受 workspace RBAC 限制。
 
-### 仅用于调试：trycloudflare
-
-**不要用于生产。** 随机 `trycloudflare.com` URL 每次重启都会变。你每次都要重新添加 ChatGPT app。而且有 SSE 流问题。
+### 临时主机名
 
 ```bash
 cloudflared tunnel --url http://127.0.0.1:8765
 ```
 
-这会生成类似 `https://random-word-1234.trycloudflare.com` 的随机 URL。只用于快速测试。
-
-### 不要用：workers.dev
-
-Cloudflare Workers 无法访问你的本地磁盘。不要试图把 `mcp_server.py` 部署到 workers.dev。
+每次运行主机名会变，ChatGPT 需要用新 URL。
 
 ## ChatGPT App / Connector 配置
 

@@ -15,14 +15,9 @@ Personal ChatGPT connectors need **Developer mode** (**Apps → Advanced setting
 
 If any step fails, use packet review. Packet review needs no MCP.
 
-## URL Stability Rule
+## HTTPS hostname
 
-**ChatGPT binds your connector to a specific hostname (or OpenAI `tunnel_id`). If the URL changes, you must delete the old app and re-add it in ChatGPT.**
-
-- Random trycloudflare / random ngrok = re-add every time → **debug-only**
-- Stable hostname = add once, keep `.review-mcp-token`
-
-Use a stable URL to add the connector once.
+ChatGPT stores the connector by hostname (or OpenAI `tunnel_id`). Keep the hostname stable so the app stays. Keep `.review-mcp-token`.
 
 ## MCP Server Requirement
 
@@ -162,8 +157,6 @@ python mcp_server.py \
 https://xxx.ngrok-free.app/mcp
 ```
 
-**Important:** Always use `--url=xxx.ngrok-free.app` with your static domain. Do NOT use `ngrok http 8765` without `--url` (generates random URLs).
-
 ### 3. OpenAI Secure MCP Tunnel (Optional, 2026-05+)
 
 Use **OpenAI Connection Tunnel** with `tunnel_id`. No public hostname needed.
@@ -184,15 +177,11 @@ python mcp_server.py \
   --token-file .review-mcp-token
 ```
 
-**Note:** OpenAI tunnels have workspace and RBAC limits. Not for public plugin store.
-
-### Debug-Only: trycloudflare
-
-**Do NOT use for production.** Random URLs rotate on every restart.
-
 ```bash
 cloudflared tunnel --url http://127.0.0.1:8765
 ```
+
+Temporary hostname; ChatGPT needs the new URL after each run.
 
 ## ChatGPT Connector
 
