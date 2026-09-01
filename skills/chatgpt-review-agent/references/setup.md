@@ -15,6 +15,15 @@ Personal ChatGPT connectors need **Developer mode** (**Apps → Advanced setting
 
 If any step fails, use packet review. Packet review needs no MCP.
 
+## URL Stability Rule
+
+**ChatGPT binds your connector to a specific hostname (or OpenAI `tunnel_id`). If the URL changes, you must delete the old app and re-add it in ChatGPT.**
+
+- Random trycloudflare / random ngrok = re-add every time → **debug-only**
+- Stable hostname = add once, keep `.review-mcp-token`
+
+Use a stable URL to add the connector once.
+
 ## MCP Server Requirement
 
 Start any MCP server that exposes the minimum tools needed for review. This repo includes `mcp_server.py`, a tiny stdlib server. Useful tools include:
@@ -93,28 +102,97 @@ Invoke-RestMethod http://127.0.0.1:PORT/health
 
 Expected: `status=ok`.
 
-## Example: Stable Cloudflare Domain
+## Stable HTTPS URL Options
 
-Use this when ChatGPT needs a public MCP URL and random trycloudflare URLs are too annoying.
+Choose based on your situation:
 
-1. Create or reuse a Cloudflare Tunnel.
-2. Route a hostname such as `<public-url>` to the local MCP HTTP server.
-3. The ChatGPT MCP endpoint is:
+### 1. Own Domain (Best if you have one)
+
+Use a **Cloudflare named tunnel** with your own domain.
+
+**Setup:**
+
+1. Create or reuse a Cloudflare Tunnel in Cloudflare Zero Trust.
+2. Route a hostname like `mcp.example.com` to `http://127.0.0.1:8765`.
+3. Install `cloudflared` as a machine service.
+
+**MCP Server:**
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --public-url https://mcp.example.com \
+  --token-file .review-mcp-token
+```
+
+**ChatGPT connector endpoint:**
 
 ```text
-<public-url>/mcp
+https://mcp.example.com/mcp
 ```
 
-Useful checks:
+### 2. No Domain (Free ngrok static)
 
-```powershell
-Invoke-RestMethod <public-url>/.well-known/oauth-authorization-server
-Invoke-WebRequest <public-url>/mcp
+Use an **ngrok free static assigned domain** (`xxx.ngrok-free.app`).
+
+**Setup:**
+
+1. Sign up for free ngrok account at https://ngrok.com
+2. Find your static domain in the dashboard
+3. Run: `ngrok http --url=xxx.ngrok-free.app 8765`
+
+**MCP Server:**
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --public-url https://xxx.ngrok-free.app \
+  --token-file .review-mcp-token
 ```
 
-The bare `/mcp` request may reject unauthenticated access; that still proves the route reaches the service.
+**ChatGPT connector endpoint:**
 
-If Cloudflare shows `1016`, the hostname is routed to a missing tunnel target or DNS/tunnel routing is wrong. Fix the tunnel public hostname, not ChatGPT.
+```text
+https://xxx.ngrok-free.app/mcp
+```
+
+**Important:** Always use `--url=xxx.ngrok-free.app` with your static domain. Do NOT use `ngrok http 8765` without `--url` (generates random URLs).
+
+### 3. OpenAI Secure MCP Tunnel (Optional, 2026-05+)
+
+Use **OpenAI Connection Tunnel** with `tunnel_id`. No public hostname needed.
+
+**Setup:**
+
+1. Create Connection Tunnel in ChatGPT (Apps → Create Connection Tunnel)
+2. Run `github.com/openai/tunnel-client` with your `tunnel_id`
+
+**MCP Server:**
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --token-file .review-mcp-token
+```
+
+**Note:** OpenAI tunnels have workspace and RBAC limits. Not for public plugin store.
+
+### Debug-Only: trycloudflare
+
+**Do NOT use for production.** Random URLs rotate on every restart.
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8765
+```
 
 ## ChatGPT Connector
 

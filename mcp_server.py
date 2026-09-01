@@ -270,6 +270,16 @@ class Handler(BaseHTTPRequestHandler):
                     break
                 if not path.is_file():
                     continue
+                parts = set(path.relative_to(root).parts)
+                if parts & DENY_NAMES:
+                    continue
+                denied = False
+                for name_part in path.parts:
+                    if any(fnmatch.fnmatch(name_part, pat) for pat in DENY_GLOBS):
+                        denied = True
+                        break
+                if denied:
+                    continue
                 try:
                     display_path = path.relative_to(root).as_posix()
                     text = path.read_text(encoding="utf-8", errors="replace")

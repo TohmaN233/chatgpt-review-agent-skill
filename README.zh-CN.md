@@ -27,7 +27,19 @@ MCP 工具调用用 High/extra-high。Pro 走 packet review。
 
 ## 安装 Skill
 
-把 skill 目录复制到 Codex skills 目录：
+推荐方式：
+
+```bash
+npx skills add TohmaN233/chatgpt-review-agent-skill
+```
+
+其他方式（Codex，手动复制）：把 skill 目录复制到 Codex skills 目录：
+
+```bash
+cp -r skills/chatgpt-review-agent ~/.codex/skills/
+```
+
+Windows PowerShell：
 
 ```powershell
 Copy-Item -Recurse .\skills\chatgpt-review-agent $env:USERPROFILE\.codex\skills\
@@ -192,50 +204,30 @@ Invoke-RestMethod http://127.0.0.1:8765/health
 
 ## HTTPS URL
 
-ChatGPT custom app/connector 需要 HTTPS endpoint。
+**URL 规则：**
 
-临时测试可以用任意 HTTPS tunnel URL：
+ChatGPT 会把你的连接器绑定到一个特定的 hostname（或 OpenAI `tunnel_id`）。**如果 URL 变了，你必须在 ChatGPT 里删除旧 app 并重新添加。** 使用稳定 URL 可以只添加一次连接器。
 
-```text
-https://temporary-url.example/mcp
-```
+- 随机 trycloudflare / 随机 ngrok = 每次都要重新添加 → **仅用于调试**
+- 稳定 hostname = 添加一次，保留 `.review-mcp-token`
 
-长期使用建议准备自己的域名：
+删除 `.review-mcp-token` 可能会强制重新认证，但如果 URL 不变，不需要创建新 app。
 
-```text
-https://repo.example.com/mcp
-```
+### 三种稳定路径
 
-启动 MCP server 时，`--public-url` 填 base URL，不要加 `/mcp`：
+根据你的情况，按顺序选择：
 
-```bash
-python mcp_server.py \
-  --root <repo-root> \
-  --root <skills-root> \
-  --host 127.0.0.1 \
-  --port 8765 \
-  --public-url https://repo.example.com \
-  --token-file .review-mcp-token
-```
+#### 1. 自有域名（有域名的话最好）
 
-检查：
+使用 **Cloudflare 命名隧道**或类似服务配合你自己的域名。
 
-```powershell
-Invoke-RestMethod https://repo.example.com/.well-known/oauth-authorization-server
-Invoke-WebRequest https://repo.example.com/mcp
-```
+**设置步骤：**
 
-`/mcp` 在没有认证信息时拒绝访问是正常的；这仍然说明路由到达了 MCP server。
-
-## Cloudflare 自有域名教程
-
-当随机 `trycloudflare.com` 地址太麻烦时，用这个。
-
-1. 把域名托管到 Cloudflare，或者使用已经在 Cloudflare 管理的域名。
+1. 把域名托管到 Cloudflare，或使用已经在 Cloudflare 管理的域名。
 2. 打开 Cloudflare Zero Trust。
-3. 进入 **Networks -> Tunnels**。
+3. 进入 **Networks → Tunnels**。
 4. 创建或复用一个 tunnel。
-5. 在本机安装/运行 Cloudflare connector。Windows 下 Cloudflare 可能给出类似命令：
+5. 把 `cloudflared` 安装成机器服务。Windows 下：
 
 ```cmd
 cloudflared.exe service install <token>
@@ -244,31 +236,127 @@ cloudflared.exe service install <token>
 6. 在 tunnel 里添加 **Public Hostname**：
 
 ```text
-Subdomain: repo
+Subdomain: mcp
 Domain: example.com
 Type: HTTP
 URL: http://127.0.0.1:8765
 ```
 
-7. 你的 public MCP base URL 是：
+**MCP Server 启动：**
 
-```text
-https://repo.example.com
+用 `--public-url` 填 base URL（不要加 `/mcp` 后缀）：
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --public-url https://mcp.example.com \
+  --token-file .review-mcp-token
 ```
 
-8. ChatGPT connector endpoint 是：
+**ChatGPT connector endpoint：**
 
 ```text
-https://repo.example.com/mcp
+https://mcp.example.com/mcp
 ```
 
-如果 Cloudflare 提示该 host 已有 A、AAAA 或 CNAME 记录，要么删除冲突 DNS 记录，要么换一个 subdomain。
+**检查：**
 
-如果 Cloudflare 显示 `1016`，说明这个 hostname 没有正确路由到 tunnel service。把 tunnel Public Hostname 的 service URL 修正为：
+```bash
+curl https://mcp.example.com/.well-known/oauth-authorization-server
+curl https://mcp.example.com/mcp
+```
+
+`/mcp` 在没有认证信息时拒绝访问是正常的；这说明路由到达了 MCP server。
+
+**故障排除：**
+
+- 如果 Cloudflare 提示该 host 已有 A、AAAA 或 CNAME 记录，删除冲突 DNS 记录或换一个 subdomain。
+- 如果 Cloudflare 显示 `1016`，说明这个 hostname 没有正确路由到 tunnel。把 tunnel Public Hostname 修正为指向 `http://127.0.0.1:8765`。
+
+#### 2. 没有域名（免费 ngrok static）
+
+使用 **ngrok 免费静态分配域名**（`xxx.ngrok-free.app`）。其他项目已经在用这个方法（DevSpace、Pieces、ROS-MCP、ChatGPT Apps 教程）。
+
+**设置步骤：**
+
+1. 在 https://ngrok.com 注册免费账号
+2. 在 ngrok dashboard 找到你的静态域名（通常是 `xxx.ngrok-free.app`）
+3. 安装 ngrok 并用 authtoken 认证
+
+**运行 ngrok：**
+
+```bash
+ngrok http --url=xxx.ngrok-free.app 8765
+```
+
+把 `xxx` 替换成你实际分配到的静态域名。
+
+**MCP Server 启动：**
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --public-url https://xxx.ngrok-free.app \
+  --token-file .review-mcp-token
+```
+
+**ChatGPT connector endpoint：**
 
 ```text
-http://127.0.0.1:8765
+https://xxx.ngrok-free.app/mcp
 ```
+
+**重要：** 不要用 `ngrok http 8765` 不带 `--url`（会生成随机 URL）。一定要用 `--url=xxx.ngrok-free.app` 指定你的静态域名。
+
+#### 3. OpenAI Secure MCP Tunnel（可选，2026-05+）
+
+使用 **OpenAI Connection Tunnel** 配合 `tunnel_id`。你的笔记本运行 `github.com/openai/tunnel-client` 出站连接；不需要公网 hostname。
+
+**设置步骤：**
+
+1. 在 ChatGPT 创建 Connection Tunnel（Apps → Create Connection Tunnel）
+2. 记下 `tunnel_id`
+3. 安装并运行 `tunnel-client`：
+
+```bash
+git clone https://github.com/openai/tunnel-client
+cd tunnel-client
+# 按照 tunnel-client 设置说明操作
+tunnel-client --tunnel-id <your-tunnel-id> --local-port 8765
+```
+
+**MCP Server 启动：**
+
+```bash
+python mcp_server.py \
+  --root <repo-root> \
+  --root <skills-root> \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --token-file .review-mcp-token
+```
+
+**注意：** OpenAI tunnel 有 workspace 和 RBAC 限制。不适合提交到公开 plugin store。RepoRelay 等项目在用这个方法。
+
+### 仅用于调试：trycloudflare
+
+**不要用于生产。** 随机 `trycloudflare.com` URL 每次重启都会变。你每次都要重新添加 ChatGPT app。而且有 SSE 流问题。
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8765
+```
+
+这会生成类似 `https://random-word-1234.trycloudflare.com` 的随机 URL。只用于快速测试。
+
+### 不要用：workers.dev
+
+Cloudflare Workers 无法访问你的本地磁盘。不要试图把 `mcp_server.py` 部署到 workers.dev。
 
 ## ChatGPT App / Connector 配置
 
@@ -338,7 +426,8 @@ Use the selected connector only. Smoke test: call list_allowed_roots only. Reply
 - review 写入限制在 `.chatgpt-review/`
 - source edit 必须显式 `--enable-edit`
 - shell 是固定白名单
-- `.env`、private keys、`.git` 等敏感路径会被阻止
+- `.env`、private keys、`.git`、`node_modules` 等敏感路径会在所有文件操作中被阻止
+- `tree`、`read_text`、`search_text` 共享相同的 DENY_NAMES 和 DENY_GLOBS 允许名单
 - `tree`、`read_text`、`search_text` 有上限
 - Python stdlib-only，不安装包
 

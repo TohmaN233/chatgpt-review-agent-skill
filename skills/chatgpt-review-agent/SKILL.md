@@ -111,7 +111,9 @@ Personal/custom ChatGPT connectors need **Developer mode**. In ChatGPT: **Apps â
 
 Prefer exact file reads over broad search. If listing a tree is needed, keep it narrow and split by directory.
 
-The bundled tiny MCP server exposes `write_review` under `.chatgpt-review/` and a small shell allowlist by default. It does not expose source editing unless started with `--enable-edit`.
+The bundled tiny MCP server exposes `write_review` under `.chatgpt-review/` and a small shell allowlist by default. Source editing is disabled by default.
+
+**Source editing with `--enable-edit`:** When you want ChatGPT to act as a local coding agent that can modify files directly, restart the MCP server with `--enable-edit`. This exposes the `write_text` tool for repo files. Default remains off; use `--enable-edit` only when you explicitly want ChatGPT-side editing. Packet review remains the default for review-only workflows.
 
 ## Failure Checks
 
