@@ -15,6 +15,11 @@ TOKEN_FILE=${REVIEW_TOKEN_FILE:-"$SCRIPT_DIR/.review-mcp-token"}
 NGROK_STATIC_DOMAIN=${REVIEW_NGROK_STATIC_DOMAIN:-}
 OPENAI_TUNNEL_ID=${REVIEW_OPENAI_TUNNEL_ID:-}
 
+# When only ngrok static domain is set, use it as the MCP public URL (no /mcp suffix).
+if [ -z "$PUBLIC_URL" ] && [ -n "$NGROK_STATIC_DOMAIN" ]; then
+  PUBLIC_URL="https://$NGROK_STATIC_DOMAIN"
+fi
+
 EDIT_ARG=
 case "$EDIT" in
   y|Y|yes|YES) EDIT_ARG="--enable-edit" ;;

@@ -19,6 +19,9 @@ if defined REVIEW_TOKEN_FILE (set "TOKEN_FILE=%REVIEW_TOKEN_FILE%") else (set "T
 if defined REVIEW_NGROK_STATIC_DOMAIN (set "NGROK_STATIC_DOMAIN=%REVIEW_NGROK_STATIC_DOMAIN%") else (set "NGROK_STATIC_DOMAIN=")
 if defined REVIEW_OPENAI_TUNNEL_ID (set "OPENAI_TUNNEL_ID=%REVIEW_OPENAI_TUNNEL_ID%") else (set "OPENAI_TUNNEL_ID=")
 
+REM When only ngrok static domain is set, use it as the MCP public URL (no /mcp suffix).
+if "%PUBLIC_URL%"=="" if not "%NGROK_STATIC_DOMAIN%"=="" set "PUBLIC_URL=https://%NGROK_STATIC_DOMAIN%"
+
 set "EDIT_ARG="
 if /I "%EDIT%"=="y" set "EDIT_ARG=--enable-edit"
 if /I "%EDIT%"=="yes" set "EDIT_ARG=--enable-edit"
