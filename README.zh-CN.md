@@ -58,7 +58,8 @@ $chatgpt-agent 实现指定改动并说明验证结果。
 
 ## 进一步了解
 
-- [本地任务与 ZIP Packet](docs/workflows/LOCAL.md)
+- [ZIP Packet 流程](docs/workflows/PACKET.md)
+- [MCP 本地工作区任务](docs/workflows/LOCAL.md)
 - [GitHub 路线](docs/workflows/GITHUB.md)
 - [MCP 配置](docs/setup/ONE_COMMAND.md)
 - [路线模型](docs/ROUTE_MODEL.md)

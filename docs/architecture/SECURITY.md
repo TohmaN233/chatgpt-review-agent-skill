@@ -1,5 +1,8 @@
 # Security contract and limits
 
+See [capability profiles and task leases](../CAPABILITY_PROFILES.md) for the
+available task permissions.
+
 ## Trust and isolation
 
 The local account, installed bridge code and authorized Host are trusted. Model

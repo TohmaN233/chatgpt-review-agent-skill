@@ -58,7 +58,8 @@ Choose the role by the result you want and the route by where the evidence lives
 
 ## More
 
-- [Local tasks and ZIP packets](docs/workflows/LOCAL.md)
+- [ZIP packet workflow](docs/workflows/PACKET.md)
+- [MCP local workspace tasks](docs/workflows/LOCAL.md)
 - [GitHub routes](docs/workflows/GITHUB.md)
 - [MCP setup](docs/setup/ONE_COMMAND.md)
 - [Route model](docs/ROUTE_MODEL.md)
