@@ -124,11 +124,8 @@ class PolicyTests(unittest.TestCase):
         result = self.packet('--file', 'large.txt', '--max-bytes-per-file', '1')
         self.assertNotEqual(result.returncode, 0)
 
-    def test_standalone_skill_and_legacy_launcher_remain_executable(self):
+    def test_standalone_skill_packet_builder_remains_executable(self):
         (self.root / 'file.txt').write_text('value')
-        legacy = SCRIPT.parents[2] / 'chatgpt-review-agent/scripts/build_review_packet.py'
-        result = self.packet('--file', 'file.txt', script=legacy)
-        self.assertEqual(result.returncode, 0, result.stderr)
         target = Path(self.temp.name) / 'isolated-skill'
         shutil.copytree(SCRIPT.parent, target, ignore=shutil.ignore_patterns('__pycache__'))
         result = self.packet('--file', 'file.txt', script=target / 'build_packet.py')
