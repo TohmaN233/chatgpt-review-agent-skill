@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TohmaN233/chatgpt-review-agent-skill/schemas/task-envelope.schema.json",
+  "title": "ChatGPT Agent Task Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "task_id", "route", "role", "source", "target", "goal"],
+  "properties": {
+    "version": {"const": 1},
+    "task_id": {"type": "string", "pattern": "^task_[A-Za-z0-9_-]+$"},
+    "route": {
+      "enum": [
+        "packet.inspect",
+        "local.review",
+        "local.plan",
+        "local.implement",
+        "github.review",
+        "github.implement"
+      ]
+    },
+    "role": {
+      "enum": ["reviewer", "advisor", "implementer", "editor"]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["packet", "local_workspace", "github_remote"]
+        },
+        "workspace_id": {"type": "string"},
+        "repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+        "ref": {"type": "string"},
+        "base_sha": {"type": "string", "pattern": "^[0-9a-fA-F]{40,64}$"},
+        "packet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "chat_reply",
+            "local_artifact",
+            "local_worktree",
+            "github_branch",
+            "github_pull_request"
+          ]
+        },
+        "path": {"type": "string"},
+        "branch": {"type": "string"},
+        "pull_request": {"type": "integer", "minimum": 1}
+      }
+    },
+    "goal": {"type": "string", "minLength": 1},
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "allowed_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "expected_base_sha": {"type": "string", "pattern": "^[0-9a-fA-F]{40,64}$"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "metadata": {"type": "object"}
+  }
+}

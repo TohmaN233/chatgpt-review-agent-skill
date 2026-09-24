@@ -1,8 +1,18 @@
 *.pyc
 __pycache__/
 .DS_Store
+
+# Generated agent artifacts
+.chatgpt-agent/
 .chatgpt-review/
+
+# Legacy and local bridge launch/runtime files
 start-review-mcp.cmd
 start-review-mcp.sh
+start-ngrok-tunnel.cmd
+start-ngrok-tunnel.sh
+start-openai-tunnel.cmd
+start-openai-tunnel.sh
 .review-mcp-token
 review-mcp.*.log
+*.agent-mcp.log

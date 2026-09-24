@@ -1,467 +1,66 @@
-# ChatGPT Review Agent Skill
+# ChatGPT Agent for Codex
 
-Use ChatGPT as an external code reviewer from Codex.
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-[中文说明](README.zh-CN.md)
+> Four focused roles. Three clear routes. Keep ChatGPT connected to the work in Codex.
 
-**Packet review is the default.** MCP connector review needs ChatGPT **Developer mode**.
+Use ChatGPT as a **reviewer, advisor, editor, or implementer** in your Codex workflow. Send a bounded ZIP packet when that is enough, connect a local workspace with MCP when you want direct access, or work against an authorized GitHub ref.
 
-- **Packet review (default):** works without MCP. Codex packages code, sends/uploads it to any ChatGPT reviewer model, then captures the reply back to local markdown.
-- **MCP connector review:** lets ChatGPT read selected local files through a tiny MCP server. Personal connectors require **Apps → Advanced settings → Developer mode**. Without it, ChatGPT returns `FORBIDDEN: This conversation does not support developer MCPs` even if the local server is healthy.
+## Work with the right role and route
 
-For MCP tool calls, use High/extra-high. Pro is for packet review.
+- **Configure MCP with the setup Skill.** It prepares the Bridge runtime and platform prerequisites, then configures one Bridge and Connector for the selected workspace. Choose a Cloudflare Named Tunnel when you have a Cloudflare-managed domain; without one, use a Quick Tunnel that updates the same workspace Connector when its address changes.
+- **Choose a role for the task.** Get review and verification, reasoning and planning, prose editing, or software implementation from focused role instructions.
+- **Choose a route for the source.** Use ZIP for local files without MCP setup, MCP for direct access to one configured workspace, or the authorized GitHub route for a remote repository or PR. ZIP and MCP remain independent choices; neither silently switches to the other.
 
-## Before Proceeding
+## Install
 
-You do not need MCP to use this skill. Start with packet review.
-
-If you only want GPT as a review agent, or do not want connector setup:
-
-1. Ask Codex to use `$chatgpt-review-agent`.
-2. Codex builds a packet zip from the relevant files.
-3. Codex uploads/sends it to ChatGPT in the side browser.
-4. ChatGPT replies.
-5. Codex captures the newest reply and saves it locally.
-
-This is the default and is usually enough for external GPT review. Set up MCP when you want ChatGPT to read local files through a connector; turn on Developer mode first.
-
-## Install The Skill
-
-Recommended:
+Install the two Skills from the [`TohmaN233/chatgpt-review-agent-skill`](https://github.com/TohmaN233/chatgpt-review-agent-skill) repository:
 
 ```bash
-npx skills add TohmaN233/chatgpt-review-agent-skill
+npx skills add TohmaN233/chatgpt-review-agent-skill --skill chatgpt-agent --skill chatgpt-agent-setup
 ```
 
-Alternative (Codex, manual copy): copy the skill folder into your Codex skills directory:
+Installation adds the Skills and exits. It does not download or start the MCP Bridge. To install from a local checkout, run `setup.cmd` on Windows or `bash setup.sh` on macOS/Linux.
 
-```bash
-cp -r skills/chatgpt-review-agent ~/.codex/skills/
-```
+Start with `$chatgpt-agent-setup`. ZIP is the default; choose MCP only when you want to configure a Connector. The setup Skill walks through the selected path.
 
-Windows PowerShell:
+## Choose a role
 
-```powershell
-Copy-Item -Recurse .\skills\chatgpt-review-agent $env:USERPROFILE\.codex\skills\
-```
+| Role | Use it to… |
+| --- | --- |
+| `reviewer` | Find actionable issues in code, research, or writing; verify claims and acceptance criteria against evidence. |
+| `advisor` | Answer a reasoning question, compare options, or build a bounded plan. |
+| `editor` | Revise prose and documents while preserving the author's intent and voice. |
+| `implementer` | Change software behavior or source code within the selected route's write permissions. |
 
-Restart Codex after installing.
-
-Use it like:
+Examples:
 
 ```text
-Use $chatgpt-review-agent to ask ChatGPT Pro to review this change and save the review markdown locally.
+$chatgpt-agent Review these changes for correctness and regressions.
+$chatgpt-agent Compare the migration options and recommend a plan.
+$chatgpt-agent Edit docs/guide.md for a first-time user.
+$chatgpt-agent Implement the requested change and report what you verified.
 ```
 
-## Packet Review
+## Choose a route
 
-This is the default path. Use it for any GPT reviewer model, including when MCP exists but ChatGPT will not actually call tools.
+| Route | Best for | Access and output |
+| --- | --- | --- |
+| **ZIP** (default) | A local task that can be answered from selected files | Codex builds a bounded packet and sends it to ChatGPT. No MCP or Connector setup is needed. ChatGPT can return an answer or patch; Codex applies local changes. Works with ChatGPT Pro models when included in your subscription. |
+| **MCP** (opt in) | Direct ChatGPT access to one local workspace | A workspace Connector reads local files. Sessions start read-only; requested report or source writes need the appropriate task-scoped grant. ZIP remains available for other tasks. |
+| **GitHub (beta)** | A remote repository, branch, or PR | Uses the authorized GitHub host integration and a pinned source revision. Review is read-only; implementation targets an authorized task branch. |
 
-Paths such as `<skill-dir>`, `<repo-root>`, and `<relative/file.py>` are placeholders. A coding agent should resolve the real paths from its current workspace and the skill source location.
+For MCP, the setup Skill prepares the Bridge package and missing prerequisites. If you have a Cloudflare-managed domain, choose a Named Tunnel for a stable address. If you do not, choose a Quick Tunnel; when its address changes after a restart, setup updates that workspace's existing Connector. A user-managed HTTPS endpoint can also be reused. ChatGPT or Cloudflare sign-in may require your participation.
 
-Build a packet:
+## How the roles and routes fit together
 
-```bash
-python <skill-dir>/scripts/build_review_packet.py \
-  --repo <repo-root> \
-  --out .chatgpt-review/review-packet.md \
-  --zip .chatgpt-review/review-packet.zip \
-  --goal "Review this change for bugs and missing tests." \
-  --file <relative/file.py> \
-  --dir tests
-```
+Choose the role by the result you want and the route by where the evidence lives. The reviewer can review a ZIP packet, the configured local workspace, or a GitHub PR. The advisor can reason over a packet or plan from local/GitHub evidence. The editor and implementer can return bounded patches in ZIP mode or make authorized changes through MCP or a GitHub task branch.
 
-The zip includes `review-packet.md` and supporting files. ChatGPT can read uploaded zip contents, so zip is preferred for multi-file reviews.
+## More
 
-Then Codex should:
+- [Local tasks and ZIP packets](docs/workflows/LOCAL.md)
+- [GitHub routes](docs/workflows/GITHUB.md)
+- [MCP setup](docs/setup/ONE_COMMAND.md)
+- [Route model](docs/ROUTE_MODEL.md)
 
-1. Open ChatGPT in the Codex side browser/tab.
-2. Select Pro, or any desired tool-less reviewer.
-3. Upload `.chatgpt-review/review-packet.zip`.
-4. Ask ChatGPT to review only the packet and not call tools.
-5. Wait for generation to finish.
-6. Save the newest assistant reply, usually to `.chatgpt-review/review.md`.
-
-## MCP Connector Review
-
-MCP is for ChatGPT reading local files through a connector. If the smoke test fails, use packet.
-
-The flow is:
-
-1. In ChatGPT, enable **Developer mode** (**Apps → Advanced settings**). Personal connectors need this.
-2. Start the local MCP server.
-3. Expose it through an HTTPS URL.
-4. Create a ChatGPT app/connector.
-5. Select that app in the ChatGPT composer with the `+` button.
-6. Smoke test `list_allowed_roots`.
-7. Only then ask ChatGPT to review files.
-
-### One-Time Guided Setup
-
-For beginner-friendly setup, give `AGENT_SETUP_PROMPT.md` to Codex.
-
-If the current Codex turn cannot show choice prompts, the agent should tell the user:
-
-```text
-请先单独输入 /plan 并回车。
-进入 Plan mode 后，再发送：引导设置 MCP。
-```
-
-In Plan mode, Codex should infer:
-
-- current repo root
-- Codex skills root
-- OS
-- sensible port, usually `8765`
-- public HTTPS URL, if already provided
-- whether source editing should be enabled
-
-The setup helpers are not questionnaires. They read environment variables and generate one-click launchers.
-
-Windows:
-
-```cmd
-setup.cmd
-```
-
-macOS/Linux:
-
-```bash
-sh setup.sh
-```
-
-Generated launchers:
-
-```text
-start-review-mcp.cmd
-start-review-mcp.sh
-```
-
-The generated launcher uses a persistent token file by default:
-
-```text
-.review-mcp-token
-```
-
-Keep this file. If it is deleted, ChatGPT may need connector re-authentication.
-
-Useful setup variables:
-
-```text
-REVIEW_REPO_ROOT=<repo-root>
-REVIEW_SKILLS_ROOT=<skills-root>
-REVIEW_PUBLIC_URL=<public-url>
-REVIEW_HOST=127.0.0.1
-REVIEW_PORT=8765
-REVIEW_ENABLE_EDIT=n
-REVIEW_TOKEN_FILE=<local-token-file>
-```
-
-Defaults:
-
-- review write artifacts enabled under `.chatgpt-review/`
-- whitelisted shell tool enabled
-- source editing disabled
-- token file at `<this-repo>/.review-mcp-token`
-
-Enable direct source edits only when you explicitly want the ChatGPT-side model to modify files:
-
-```text
-REVIEW_ENABLE_EDIT=yes
-```
-
-### Manual Server Start
-
-Run from this repo:
-
-```bash
-python mcp_server.py \
-  --root <repo-root> \
-  --root <skills-root> \
-  --host 127.0.0.1 \
-  --port 8765 \
-  --public-url <public-url> \
-  --token-file .review-mcp-token
-```
-
-Add `--enable-edit` only if you want ChatGPT to write source files.
-
-Health check:
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8765/health
-```
-
-Expected:
-
-```json
-{"status":"ok","root":"<repo-root>"}
-```
-
-## HTTPS URL
-
-ChatGPT stores the connector by hostname (or OpenAI `tunnel_id`). Keep that hostname the same so the app stays. Keep `.review-mcp-token` across restarts.
-
-### Own domain
-
-Use a **Cloudflare named tunnel** or similar service with your own domain.
-
-**Setup:**
-
-1. Put the domain on Cloudflare, or use a domain already managed by Cloudflare.
-2. Open Cloudflare Zero Trust.
-3. Go to **Networks → Tunnels**.
-4. Create or reuse a tunnel.
-5. Install `cloudflared` as a machine service. On Windows:
-
-```cmd
-cloudflared.exe service install <token>
-```
-
-6. In the tunnel, add a **Public Hostname**:
-
-```text
-Subdomain: mcp
-Domain: example.com
-Type: HTTP
-URL: http://127.0.0.1:8765
-```
-
-**MCP Server:**
-
-Start with `--public-url` set to the base URL (no `/mcp` suffix):
-
-```bash
-python mcp_server.py \
-  --root <repo-root> \
-  --root <skills-root> \
-  --host 127.0.0.1 \
-  --port 8765 \
-  --public-url https://mcp.example.com \
-  --token-file .review-mcp-token
-```
-
-**ChatGPT connector endpoint:**
-
-```text
-https://mcp.example.com/mcp
-```
-
-**Checks:**
-
-```bash
-curl https://mcp.example.com/.well-known/oauth-authorization-server
-curl https://mcp.example.com/mcp
-```
-
-`/mcp` rejecting unauthenticated requests is expected; it means the route reaches the server.
-
-**Troubleshooting:**
-
-- If Cloudflare says an A, AAAA, or CNAME record already exists, delete the conflicting DNS record or choose another subdomain.
-- If Cloudflare shows `1016`, the hostname is not routed to a live tunnel. Fix the tunnel Public Hostname to point to `http://127.0.0.1:8765`.
-
-### No domain
-
-ngrok assigns a static host like `xxx.ngrok-free.app`.
-
-**Setup:**
-
-1. Sign up for a free ngrok account at https://ngrok.com
-2. Find your static domain in the ngrok dashboard (usually `xxx.ngrok-free.app`)
-3. Install ngrok and authenticate with your authtoken
-
-**Run ngrok:**
-
-```bash
-ngrok http --url=xxx.ngrok-free.app 8765
-```
-
-Replace `xxx` with your actual assigned static domain.
-
-**MCP Server:**
-
-```bash
-python mcp_server.py \
-  --root <repo-root> \
-  --root <skills-root> \
-  --host 127.0.0.1 \
-  --port 8765 \
-  --public-url https://xxx.ngrok-free.app \
-  --token-file .review-mcp-token
-```
-
-**ChatGPT connector endpoint:**
-
-```text
-https://xxx.ngrok-free.app/mcp
-```
-
-### OpenAI tunnel
-
-Use **OpenAI Connection Tunnel** with `tunnel_id`. Your laptop runs `github.com/openai/tunnel-client` outbound; no public hostname needed.
-
-**Setup:**
-
-1. Create a Connection Tunnel in ChatGPT (Apps → Create Connection Tunnel)
-2. Note the `tunnel_id`
-3. Install and run `tunnel-client`:
-
-```bash
-git clone https://github.com/openai/tunnel-client
-cd tunnel-client
-# Follow tunnel-client setup instructions
-tunnel-client --tunnel-id <your-tunnel-id> --local-port 8765
-```
-
-**MCP Server:**
-
-```bash
-python mcp_server.py \
-  --root <repo-root> \
-  --root <skills-root> \
-  --host 127.0.0.1 \
-  --port 8765 \
-  --token-file .review-mcp-token
-```
-
-OpenAI Connection Tunnel uses a `tunnel_id`. Run `github.com/openai/tunnel-client` to the local port. Workspace RBAC applies.
-
-### Temporary hostname
-
-```bash
-cloudflared tunnel --url http://127.0.0.1:8765
-```
-
-This hostname is new each run, so ChatGPT will need the new URL.
-
-## ChatGPT App / Connector Setup
-
-Personal/custom connectors will not call tools until **Developer mode** is on.
-
-In ChatGPT:
-
-Connected review example:
-
-![Codex and ChatGPT connected review example](assets/codex-chatgpt-connected-review.png)
-
-1. Open **Apps**.
-2. Open **Advanced settings**.
-3. Enable **Developer mode**.
-4. Create an app.
-5. Give it a name that contains `connect`, for example:
-
-```text
-connectcodex
-```
-
-The `connect` name is not a protocol requirement, but it makes the app easy to find in the composer `+` menu and matches the tested workflow.
-
-6. For the connector/MCP URL, enter:
-
-```text
-https://repo.example.com/mcp
-```
-
-7. Complete the OAuth flow.
-8. Refresh/rescan tools if ChatGPT offers that action.
-9. In the ChatGPT composer, click the lower-left `+`.
-10. Select your app, for example `connectcodex`.
-11. Use a model that can call tools, usually High/extra-high.
-
-Smoke prompt:
-
-```text
-Use the selected connector only. Smoke test: call list_allowed_roots only. Reply whether a real tool call happened and paste the returned roots or exact error. Do not call any other tool.
-```
-
-Pass condition:
-
-- ChatGPT UI shows a real tool call, and
-- the reply returns roots such as `<repo-root>` and `<skills-root>`.
-
-If Pro cannot call tools, use packet review.
-
-If ChatGPT gets stuck looking for tools, reselect the app from the composer `+` menu and retry once.
-
-## MCP Tools
-
-The bundled server exposes:
-
-- `list_allowed_roots`
-- `tree`
-- `read_text`
-- `search_text`
-- `write_review`
-- `list_review_artifacts`
-- `run_command`
-- `write_text` only with `--enable-edit`
-
-Safety limits:
-
-- roots must be explicitly allowed with `--root`
-- review writes are confined to `.chatgpt-review/`
-- source editing requires `--enable-edit`
-- shell is a fixed allowlist
-- secret-ish paths such as `.env`, private keys, `.git`, and `node_modules` are blocked from all file operations
-- `tree`, `read_text`, and `search_text` share the same DENY_NAMES and DENY_GLOBS allowlist
-- `tree`, `read_text`, and `search_text` are capped
-- stdlib-only Python, no package install
-
-Allowed `run_command` values:
-
-```text
-git status --short
-git diff --stat
-git diff
-python -m pytest
-npm test
-```
-
-## Troubleshooting
-
-**Error fetching OAuth configuration**
-
-- Check `<public-url>/.well-known/oauth-authorization-server`.
-- Start the server with `--public-url <public-url>`.
-- Check the tunnel routes to `http://127.0.0.1:8765`.
-
-**Message stream error while looking for tools**
-
-- Confirm the server is alive with `/health`.
-- Reselect the connector app from the ChatGPT composer `+` menu.
-- Retry the smoke prompt once.
-
-**Cloudflare 1016**
-
-- The public hostname is not routed to the tunnel target.
-- Fix the tunnel Public Hostname service URL: `http://127.0.0.1:8765`.
-
-**Pro cannot call tools**
-
-Expected in some ChatGPT surfaces. Use packet review.
-
-**FORBIDDEN: This conversation does not support developer MCPs**
-
-First check ChatGPT **Apps → Advanced settings → Developer mode**. Personal connectors need it. If Developer mode is already on, this is conversation/account policy, not a local MCP bug. Use packet in that conversation.
-
-**This tool call was blocked by OpenAI's safety checks**
-
-Confirm Developer mode is on and the connector is selected. If the local server still has no matching `/mcp` request, use packet for that turn.
-
-**Tool call appears fake**
-
-Treat it as unverified unless the ChatGPT UI shows a tool call or the MCP server log shows a matching `/mcp` request. Then use packet review.
-
-## Files
-
-```text
-AGENT_SETUP_PROMPT.md
-mcp_server.py
-setup.cmd
-setup.sh
-skills/chatgpt-review-agent/SKILL.md
-skills/chatgpt-review-agent/scripts/build_review_packet.py
-skills/chatgpt-review-agent/references/setup.md
-skills/chatgpt-review-agent/references/browser-workflows.md
-```
+MIT License · Maintained by [@TohmaN233](https://github.com/TohmaN233).

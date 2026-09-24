@@ -1,0 +1,7 @@
+# Extra project-local exclusions for packets and MCP reads.
+# The built-in policy already blocks .env files, private keys, credentials,
+# VCS metadata, dependency directories, and common build output.
+
+.chatgpt-agent/
+.chatgpt-review/
+.review-mcp-token
