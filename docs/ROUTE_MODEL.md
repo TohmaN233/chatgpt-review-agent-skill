@@ -29,6 +29,6 @@ implementation requires separate authorization and targets a task branch. An
 `alternative_route` is a suggestion only; a route error never switches access
 modes automatically.
 
-See [`routes.json`](../routes.json) for compatible role/route pairs and
+See [`routes.json`](../skills/chatgpt-agent/references/routes.json) for compatible role/route pairs and
 [`schemas/task-envelope.schema.json`](../schemas/task-envelope.schema.json)
 for the task envelope.

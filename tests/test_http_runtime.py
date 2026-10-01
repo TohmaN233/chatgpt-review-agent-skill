@@ -342,8 +342,8 @@ class HTTPRuntimeTests(unittest.TestCase):
         return result['result']['structuredContent'], args
 
     def test_validation_has_evidence_sanitizes_stdout_stderr_and_no_reexecution(self):
-        secret = 'special-env-secret-that-is-long'
-        script = "import os,sys,pathlib; print('Bearer cga_at_abc123'); print('API_KEY='+os.environ['TEST_SECRET']); print(os.getcwd(), file=sys.stderr); p=pathlib.Path('count.txt'); p.write_text(str(int(p.read_text())+1) if p.exists() else '1')"
+        secret = 'example-special-env-secret-that-is-long'
+        script = "import os,sys,pathlib; print('Bearer cga_at_abc123'); print('API_KEY=', os.environ['TEST_SECRET'], sep=''); print(os.getcwd(), file=sys.stderr); p=pathlib.Path('count.txt'); p.write_text(str(int(p.read_text())+1) if p.exists() else '1')"
         with patch.dict(os.environ, {'TEST_SECRET': secret}):
             result, args = self.validation(script)
         self.assertTrue(result['success'], result)

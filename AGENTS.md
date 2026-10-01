@@ -2,6 +2,7 @@
 
 - ZIP is the default local workflow. Do not install or start MCP components unless the user explicitly chooses MCP.
 - Install `chatgpt-agent` and `chatgpt-agent-setup`; review behavior belongs in the main Skill.
+- The Codex plugin packages only Skills and their resources. Keep the canonical route table at `skills/chatgpt-agent/references/routes.json`; do not register or download the MCP Bridge during plugin installation.
 - Keep local workspace tasks and GitHub tasks. Do not add a local/GitHub synchronization route.
 - MCP uses one Bridge and one Connector per workspace. Update only the Connector recorded for that workspace.
 - On Quick Tunnel restart, update the same workspace Connector when its public URL changes and retain Bearer authorization unless ChatGPT or an authenticated smoke call requires reauthorization. Reuse user-managed HTTPS routes unchanged.

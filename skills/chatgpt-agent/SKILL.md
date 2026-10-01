@@ -9,7 +9,8 @@ description: >
 # ChatGPT Agent
 
 Read `references/route-selection.md`. Choose the task role and source/access
-route as separate decisions, confirm the pair is supported by `routes.json`,
+route as separate decisions, confirm the pair is supported by
+`references/routes.json`,
 then load exactly one role file and only the route references needed for this
 task. Do not load every role guide.
 

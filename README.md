@@ -14,15 +14,24 @@ Use ChatGPT as a **reviewer, advisor, editor, or implementer** in your Codex wor
 
 ## Install
 
-Install the two Skills from the [`TohmaN233/chatgpt-review-agent-skill`](https://github.com/TohmaN233/chatgpt-review-agent-skill) repository:
+Add the Codex marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add TohmaN233/chatgpt-review-agent-skill
+codex plugin add chatgpt-agent@chatgpt-agent
+```
+
+In the Codex app, open **Plugins → Add Marketplace**, enter `TohmaN233/chatgpt-review-agent-skill`, then install **ChatGPT Agent**. Start a new chat after installation.
+
+Plugin installation adds its packaged Skills and resources. It does not download or start the MCP Bridge. Start with `$chatgpt-agent-setup`; ZIP is the default, and MCP is configured only when you explicitly choose it.
+
+To install the Skills separately with the Skills CLI, run:
 
 ```bash
 npx skills add TohmaN233/chatgpt-review-agent-skill --skill chatgpt-agent --skill chatgpt-agent-setup
 ```
 
-Installation adds the Skills and exits. It does not download or start the MCP Bridge. To install from a local checkout, run `setup.cmd` on Windows or `bash setup.sh` on macOS/Linux.
-
-Start with `$chatgpt-agent-setup`. ZIP is the default; choose MCP only when you want to configure a Connector. The setup Skill walks through the selected path.
+From a local checkout, `setup.cmd` on Windows and `bash setup.sh` on macOS/Linux install only the Skills. The Python helpers use only the Python standard library; they require no `pip` packages or Python lockfile.
 
 ## Choose a role
 

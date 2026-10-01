@@ -14,15 +14,24 @@
 
 ## 安装
 
-从 [`TohmaN233/chatgpt-review-agent-skill`](https://github.com/TohmaN233/chatgpt-review-agent-skill) 安装两个 Skill：
+添加 Codex Marketplace 并安装插件：
+
+```bash
+codex plugin marketplace add TohmaN233/chatgpt-review-agent-skill
+codex plugin add chatgpt-agent@chatgpt-agent
+```
+
+在 Codex 应用中打开 **Plugins → Add Marketplace**，输入 `TohmaN233/chatgpt-review-agent-skill`，然后安装 **ChatGPT Agent**。安装后请新建一个对话。
+
+插件安装会添加打包好的 Skills 和资源，不会下载或启动 MCP Bridge。使用 `$chatgpt-agent-setup` 开始；默认路线是 ZIP，只有你明确选择 MCP 时才会配置 Connector。
+
+也可以使用 Skills CLI 单独安装 Skills：
 
 ```bash
 npx skills add TohmaN233/chatgpt-review-agent-skill --skill chatgpt-agent --skill chatgpt-agent-setup
 ```
 
-安装只添加 Skills，然后退出；不会下载或启动 MCP Bridge。从本地仓库安装时，Windows 运行 `setup.cmd`，macOS/Linux 运行 `bash setup.sh`。
-
-安装后运行 `$chatgpt-agent-setup`。默认使用 ZIP；只有需要配置 Connector 时才选择 MCP。配置 Skill 会按所选路线完成后续步骤。
+从本地仓库执行时，Windows 使用 `setup.cmd`，macOS/Linux 使用 `bash setup.sh`；这两个脚本只安装 Skills。Python 辅助脚本只使用 Python 标准库，无需安装 `pip` 依赖或 lock 文件。
 
 ## 选择角色
 

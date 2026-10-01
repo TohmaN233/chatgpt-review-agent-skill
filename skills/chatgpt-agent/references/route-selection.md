@@ -2,7 +2,8 @@
 
 Role and route are separate decisions. The role follows the requested
 deliverable; the route follows where the evidence lives and which access mode
-the user selected. Check the pair against `routes.json`.
+the user selected. Check the pair against the sibling `routes.json` in this
+skill's `references/` directory.
 
 ## Choose a role
 
